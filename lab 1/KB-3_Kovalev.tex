@@ -1,0 +1,355 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode} 
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{geometry}
+\usepackage{listings}
+\usepackage{xcolor}
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green},
+    numbers=left,
+    frame=single,
+    breaklines=true
+}
+\geometry{
+    a4paper,
+    left=30mm,
+    right=15mm,
+    top=20mm,
+    bottom=20mm
+}
+
+% PROBABILITY SYMBOLS
+\newcommand*\PROB\Pr 
+\DeclareMathOperator*{\EXPECT}{\mathbb{E}}
+
+% Sets, Rngs, ets 
+\newcommand{\N}{{{\mathbb N}}}
+\newcommand{\Z}{{{\mathbb Z}}}
+\newcommand{\R}{{{\mathbb R}}}
+\newcommand{\Zp}{\ints_p} % Integers modulo p
+\newcommand{\Zq}{\ints_q} % Integers modulo q
+\newcommand{\Zn}{\ints_N} % Integers modulo N
+
+% Landau 
+\newcommand{\bigO}{\mathcal{O}}
+\newcommand*{\OLandau}{\bigO}
+\newcommand*{\WLandau}{\Omega}
+\newcommand*{\xOLandau}{\widetilde{\OLandau}}
+\newcommand*{\xWLandau}{\widetilde{\WLandau}}
+\newcommand*{\TLandau}{\Theta}
+\newcommand*{\xTLandau}{\widetilde{\TLandau}}
+\newcommand{\smallo}{o} %technically, an omicron
+\newcommand{\softO}{\widetilde{\bigO}}
+\newcommand{\wLandau}{\omega}
+\newcommand{\negl}{\mathrm{negl}} 
+
+% Misc
+\newcommand{\eps}{\varepsilon}
+\newcommand{\inprod}[1]{\left\langle #1 \right\rangle}
+
+\newcommand{\handout}[5]{
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { {\bf Учебная практика (учебно-лабораторная)} \hfill #2 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #5  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\em #3 \hfill #4} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newcommand{\lecture}[4]{\handout{#1}{#2}{#3}{Автор: #4}{Название темы #1}}
+
+\newtheorem{theorem}{Теорема}
+\newtheorem{lemma}{Лемма}
+\newtheorem{definition}{Определение}
+\newtheorem{corollary}{Следствие}
+\newtheorem{fact}{Факт}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    {\large\textbf{Федеральное государственное автономное образовательное учреждение высшего образования}}\par
+    \vspace{0.5cm}
+    {\large\textbf{Балтийский федеральный университет имени Иммануила Канта}}\par
+    \vspace{0.5cm}
+    
+    {\large Институт физико-математических наук и информационных технологий}\par
+    \vspace{3cm}
+    
+    {\Large\textbf{ОТЧЕТ}}\par
+    \vspace{1cm}
+    
+    {\Large по учебной практике (учебно-лабораторной)}\par
+    \vspace{2cm}
+    
+    \begin{flushright}
+        \large
+        \textbf{Выполнил:}\par
+        студент \underline{Ковалев М.В.}\par
+        \vspace{0.5cm}
+        группы \underline{05-КБ-22-О}\par
+        \vspace{0.5cm}
+        направление подготовки 10.05.01 <<Компьютерная безопасность>>\par
+        \vspace{2cm}
+        
+        \textbf{Руководитель практики:}\par
+        ст. преподаватель \underline{Глинчиков К.Е.}\par
+        \vspace{2cm}
+    \end{flushright}
+    
+    \begin{flushright}
+        Работа выполнена:  <<\underline{\hspace{1cm}}>> \underline{\hspace{3cm}} 2025 г.\par
+        \vspace{1cm}
+        Работа защищена с оценкой: \underline{\hspace{6cm}}\par
+        \vspace{1cm}
+        <<\underline{\hspace{1cm}}>> \underline{\hspace{3cm}} 2025 г.\par
+    \end{flushright}
+    
+    \vspace{2cm}
+    {\large Калининград 2025}
+\end{titlepage}
+
+\newpage
+
+\lecture{Вычисление символа Якоби}{6 семестр 2025 г.}{}{Ковалев М.В.}
+
+\section{Введение}
+
+Символ Якоби — важная теоретико-числовая функция, используемая в криптографии и теории чисел для определения квадратичных вычетов по модулю нечётного числа без необходимости его факторизации. В данной работе рассматривается алгоритм вычисления символа Якоби и его применение в компьютерной безопасности.
+
+\section{Основные определения}
+
+\begin{definition}[Символ Лежандра]
+Для простого нечётного числа $p$ и целого числа $a$ символ Лежандра $\left(\frac{a}{p}\right)$ определяется как:
+\[
+\left(\frac{a}{p}\right) = 
+\begin{cases}
+0, & \text{если } p \mid a \\
+1, & \text{если } a \text{ — квадратичный вычет по модулю } p \\
+-1, & \text{иначе}
+\end{cases}
+\]
+\end{definition}
+
+\begin{definition}[Символ Якоби]
+Для нечётного натурального $n = p_1^{\alpha_1}\cdots p_k^{\alpha_k}$ и целого $a$ символ Якоби определяется как:
+\[
+\left(\frac{a}{n}\right) = \prod_{i=1}^k \left(\frac{a}{p_i}\right)^{\alpha_i}
+\]
+\end{definition}
+\section{Свойства символа Якоби}
+
+Символ Якоби обладает следующими фундаментальными свойствами:
+
+\begin{theorem}[Основные свойства символа Якоби]
+Для любых целых чисел $a, b$ и нечётных натуральных чисел $m, n$ справедливо:
+\begin{enumerate}
+\item \textbf{Мультипликативность}:
+\[ \left(\frac{ab}{n}\right) = \left(\frac{a}{n}\right)\left(\frac{b}{n}\right) \]
+\[ \left(\frac{a}{mn}\right) = \left(\frac{a}{m}\right)\left(\frac{a}{n}\right) \]
+
+\item \textbf{Периодичность по верхнему аргументу}:
+Если $a \equiv b \pmod{n}$, то $\left(\frac{a}{n}\right) = \left(\frac{b}{n}\right)$
+
+\item \textbf{Вычисление для -1}:
+\[ \left(\frac{-1}{n}\right) = (-1)^{\frac{n-1}{2}} = 
+\begin{cases}
+1, & \text{если } n \equiv 1 \pmod{4} \\
+-1, & \text{если } n \equiv 3 \pmod{4}
+\end{cases} \]
+
+\item \textbf{Вычисление для 2}:
+\[ \left(\frac{2}{n}\right) = (-1)^{\frac{n^2-1}{8}} = 
+\begin{cases}
+1, & \text{если } n \equiv \pm 1 \pmod{8} \\
+-1, & \text{если } n \equiv \pm 3 \pmod{8}
+\end{cases} \]
+
+\item \textbf{Квадратичный закон взаимности} (для взаимно простых $m, n \geq 3$):
+\[ \left(\frac{m}{n}\right) = (-1)^{\frac{(m-1)(n-1)}{4}} \left(\frac{n}{m}\right) \]
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Доказательство свойств]
+Докажем некоторые из этих свойств:
+
+1. \textbf{Мультипликативность} следует непосредственно из определения символа Якоби как произведения символов Лежандра.
+
+3. \textbf{Для -1}: Рассмотрим простой случай, когда $n$ — простое число. По критерию Эйлера:
+\[ \left(\frac{-1}{p}\right) \equiv (-1)^{\frac{p-1}{2}} \pmod{p} \]
+Для составного $n$ результат следует из мультипликативности.
+
+4. \textbf{Для 2}: Аналогично, для простого $p$:
+\[ \left(\frac{2}{p}\right) \equiv (-1)^{\frac{p^2-1}{8}} \pmod{p} \]
+что можно проверить непосредственным вычислением для различных классов вычетов.
+\end{proof}
+\section{Алгоритм вычисления}
+
+\begin{algorithm}[h]
+\caption{Вычисление символа Якоби}
+\label{alg:Jacobi}
+\textbf{Вход:} Нечётное $n > 0$, целое $a$ \\
+\textbf{Выход:} $\left(\frac{a}{n}\right)$
+
+\begin{algorithmic}[1]
+\State $result \gets 1$
+\While{$a \neq 0$}
+    \While{$a \equiv 0 \pmod{2}$}
+        \State $a \gets a/2$
+        \State $r \gets n \mod 8$
+        \If{$r = 3$ или $r = 5$} $result \gets -result$ \EndIf
+    \EndWhile
+    \State Поменять местами $a$ и $n$
+    \If{$a \equiv n \equiv 3 \pmod{4}$} $result \gets -result$ \EndIf
+    \State $a \gets a \mod n$
+\EndWhile
+\If{$n = 1$} \Return $result$ \Else \Return $0$ \EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\section{Теоретический анализ}
+
+\begin{theorem}[Квадратичный закон взаимности]
+Для взаимно простых нечётных $m,n \geq 3$:
+\[
+\left(\frac{m}{n}\right)\left(\frac{n}{m}\right) = (-1)^{\frac{(m-1)(n-1)}{4}}
+\]
+\end{theorem}
+
+\begin{theorem}
+Алгоритм \ref{alg:Jacobi} корректно вычисляет символ Якоби за $O(\log n)$ арифметических операций.
+\end{theorem}
+
+\begin{proof}
+Корректность следует из свойств символа Якоби и квадратичного закона взаимности. Сложность определяется аналогично алгоритму Евклида.
+\end{proof}
+
+\section{Пример вычисления}
+
+Вычислим $\left(\frac{1001}{9907}\right)$:
+
+\begin{align*}
+\left(\frac{1001}{9907}\right) &= -\left(\frac{9907}{1001}\right) = -\left(\frac{900}{1001}\right) \\
+&= -\left(\frac{4}{1001}\right)\left(\frac{225}{1001}\right) = -\left(\frac{225}{1001}\right) \\
+&= -\left(\frac{1001}{225}\right) = -\left(\frac{101}{225}\right) \\
+&= -\left(\frac{225}{101}\right) = -\left(\frac{23}{101}\right) \\
+&= \left(\frac{101}{23}\right) = \left(\frac{9}{23}\right) = 1
+\end{align*}
+\section{Сравнение скорости работы алгоритмов}
+
+Для сравнения эффективности нашей реализации алгоритма вычисления символа Якоби со встроенной функцией в SageMath был проведён ряд тестов на больших входных данных. Результаты представлены в таблице \ref{table:speed_comparison}.
+
+\begin{table}[h]
+\centering
+\caption{Сравнение времени работы алгоритмов (в секундах)}
+\label{table:speed_comparison}
+\begin{tabular}{|c|c|c|c|}
+\hline
+Битовая длина $n$ & Наша реализация & SageMath & Ср.Отношение \\ 
+\hline
+256 бит & 0.00097 & 0.0001 & 6 \\
+512 бит  & 0.00081 & 0.000068 & 11 \\
+1024 бит  & 0.0015 &  0.000076 & 21 \\
+2048 бит  & 0.003 & 0.0001 & 32 \\
+
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Методика тестирования}
+
+Тестирование проводилось на следующей конфигурации:
+\begin{itemize}
+\item Процессор: Intel Core i5-1235U (1.30 GHz)
+\item Память: 16 ГБ DDR4
+\item ОС: Windows 11
+\item SageMathCell - браузерная ячейка
+\end{itemize}
+
+\subsection{Анализ результатов}
+
+Как видно из таблицы \ref{table:speed_comparison}:
+\begin{itemize}
+\item Встроенная функция SageMath работает сильно быстрее на больших числах
+\item Разница в скорости растёт при увеличении размера входных данных
+
+\end{itemize}
+
+
+
+\begin{lstlisting}[language=Python,caption=Код для тестирования]
+import time
+def jacobi(a, n):
+    if n <= 0 or n % 2 == 0:
+        raise ValueError("n неподходящее")
+    a = a % n
+    result = 1
+    while a != 0:    
+        while a % 2 == 0:
+            a = a // 2
+            r = n % 8
+            if r == 3 or r == 5:
+                result = -result    
+        a, n = n, a
+        
+        if a % 4 == 3 and n % 4 == 3:
+            result = -result
+        a = a % n
+    if n == 1:
+        return result
+    else:
+        return 0
+def test_jacobi_performance(bit_length, trials=1):
+    n = random_prime(2^bit_length, lbound=2^(bit_length-1))
+    a = randint(2, n-1)
+    print(a,n)
+    # Тестирование собственной реализации
+    start = time.time()
+    for _ in range(trials):
+        j1 = jacobi(a, n)
+    our_time = (time.time() - start)/trials
+
+    # Тестирование SageMath
+    start = time.time()
+    for _ in range(trials):
+        j2 = jacobi_symbol(a, n)
+    sage_time = (time.time() - start)/trials
+    
+    assert j1 == j2  
+    print(our_time/sage_time)
+    return (our_time, sage_time*1.0)
+\end{lstlisting}
+
+\section{Применение в криптографии}
+
+Символ Якоби применяется в:
+\begin{itemize}
+\item Тестах простоты (Соловея-Штрассена)
+\item Криптосистемах с открытым ключом
+\item Алгоритмах факторизации
+\item Протоколах аутентификации
+\end{itemize}
+
+\newpage
+\begin{center}
+\paragraph{Список литературы}
+\end{center}
+
+\begin{enumerate}
+\item Коблиц Н. Курс теории чисел и криптографии. — М.: Наука, 2001.
+\item Василенко О.Н. Теоретико-числовые алгоритмы в криптографии. — М.: МЦНМО, 2003.
+\end{enumerate}
+
+\end{document}
